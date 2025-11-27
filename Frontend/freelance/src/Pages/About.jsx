@@ -5,14 +5,13 @@ const About = () => {
     <div className="py-5">
       <Container>
 
-        {/* Heading */}
         <h2 className="text-center fw-bold mb-4">About Us</h2>
         <p className="text-center mx-auto mb-5" style={{ maxWidth: "700px", fontSize: "16px" }}>
           Freelance Portal is a smart platform that helps Clients connect with the best Freelancers.
           We aim to make online work simple, transparent, and trustworthy.
         </p>
 
-        {/* Mission & Vision */}
+        
         <Row className="gy-4 mb-5">
           <Col md={6}>
             <Card className="p-4 shadow-sm border-0 h-100">
