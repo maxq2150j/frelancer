@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-const Sidebar = () => {
+const ClientSidebar = () => {
   return (
     <div
       style={{
@@ -15,32 +15,32 @@ const Sidebar = () => {
         left: 0,
       }}
     >
-      <h3 className="text-light mb-4">Freelancer</h3>
+      <h3 className="text-light mb-4">Client</h3>
 
       <ul style={{ listStyle: "none", paddingLeft: 0 }}>
         <li className="mb-3">
-          <Link to="/freelancer-dashboard" className="text-light text-decoration-none">
+          <Link to="/client-dashboard" className="text-light text-decoration-none">
             Dashboard
           </Link>
         </li>
         <li className="mb-3">
-          <Link to="/freelancer/jobs" className="text-light text-decoration-none">
-            Available Jobs
+          <Link to="/client/post-job" className="text-light text-decoration-none">
+            Post Job
           </Link>
         </li>
         <li className="mb-3">
-          <Link to="/freelancer/proposals" className="text-light text-decoration-none">
-            My Proposals
+          <Link to="/client/proposals" className="text-light text-decoration-none">
+            Proposals
           </Link>
         </li>
         <li className="mb-3">
-          <Link to="/freelancer/payments" className="text-light text-decoration-none">
-            Payments
+          <Link to="/client/tasks" className="text-light text-decoration-none">
+            Tasks
           </Link>
         </li>
         <li className="mb-3">
-          <Link to="/freelancer/tasks" className="text-light text-decoration-none">
-            My Tasks
+          <Link to="/client/jobs" className="text-light text-decoration-none">
+            My Jobs
           </Link>
         </li>
         <li className="mt-1">
@@ -53,4 +53,4 @@ const Sidebar = () => {
   );
 };
 
-export default Sidebar;
+export default ClientSidebar;
