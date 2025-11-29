@@ -4,7 +4,7 @@ import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 
 const SendProposal = () => {
-  const { id } = useParams(); // job id
+  const { id } = useParams(); 
   const navigate = useNavigate();
 
   const [data, setData] = useState({

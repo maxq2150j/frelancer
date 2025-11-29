@@ -1,13 +1,23 @@
 import React, { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
+import { getPaymentsByFreelancer } from "../../services/paymentService";
 
 const FreelancerPayments = () => {
   const [payments, setPayments] = useState([]);
 
   useEffect(() => {
-    const local = JSON.parse(localStorage.getItem('payments') || '[]');
-    setPayments(local);
+    fetchPayments();
   }, []);
+
+  const fetchPayments = async () => {
+    try {
+      const freelancerId = 2; 
+      const res = await getPaymentsByFreelancer(freelancerId);
+      setPayments(res.data);
+    } catch (err) {
+      console.error("Error fetching payments:", err);
+    }
+  };
 
   return (
     <div style={{ display: "flex" }}>
