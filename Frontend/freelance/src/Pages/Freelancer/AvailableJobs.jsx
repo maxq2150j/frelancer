@@ -1,43 +1,39 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
-
-const jobs = [
-  { title: "Web Development", budget: "₹8000", desc: "Need a responsive website" },
-  { title: "UI/UX Design", budget: "₹5000", desc: "Create mobile UI screens" },
-  { title: "Logo Design", budget: "₹2000", desc: "Need a modern logo" },
-  { title: "App Design", budget: "₹6000", desc: "Mobile app redesign" },
-  { title: "Digital Marketing", budget: "₹7000", desc: "Need social media marketing" },
-  { title: "Content Writing", budget: "₹1500", desc: "Write SEO friendly content" },
-];
+import { getAlljobs } from "../../services/JobService";
 
 const AvailableJobs = () => {
+  const [jobs, setJobs] = useState([]);
+
+  useEffect(() => {
+    getAlljobs()
+      .then(res => setJobs(res.data))
+      .catch(err => console.error(err));
+  }, []);
+
   return (
     <div style={{ display: "flex" }}>
       <Sidebar />
-
       <div style={{ marginLeft: "260px", padding: "30px", width: "100%" }}>
         <h2>Available Jobs</h2>
         <hr />
-
         <div className="row">
-          {jobs.map((job, index) => (
-            <div className="col-md-4 mb-4" key={index}>
+          {jobs.map((job) => (
+            <div className="col-md-4 mb-4" key={job.id}>
               <div className="p-3 shadow rounded bg-white">
                 <h5>{job.title}</h5>
-                <p className="text-muted small">{job.desc}</p>
+                <p className="text-muted small">{job.description}</p>
                 <strong>Budget: {job.budget}</strong>
-
                 <div className="mt-3 d-flex gap-2">
                   <button
                     className="btn btn-outline-dark btn-sm"
-                    onClick={() => window.location.href = `/freelancer/job/${index}`}
+                    onClick={() => window.location.href = `/freelancer/job/${job.id}`}
                   >
                     View Details
                   </button>
-
                   <button
                     className="btn btn-dark btn-sm"
-                    onClick={() => window.location.href = `/freelancer/proposal/${index}`}
+                    onClick={() => window.location.href = `/freelancer/proposal/${job.id}`}
                   >
                     Send Proposal
                   </button>
@@ -46,7 +42,6 @@ const AvailableJobs = () => {
             </div>
           ))}
         </div>
-
       </div>
     </div>
   );

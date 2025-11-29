@@ -1,11 +1,34 @@
 import React, { useState } from "react";
 import Sidebar from "./Sidebar";
+import axios from "axios";
+import { useNavigate, useParams } from "react-router-dom";
 
 const SendProposal = () => {
+  const { id } = useParams(); // job id
+  const navigate = useNavigate();
+
   const [data, setData] = useState({
     price: "",
     message: "",
   });
+
+  const handleSubmit = async () => {
+    try {
+      await axios.post("http://localhost:8080/proposals", {
+        jobId: id,
+        freelancerId: 1, 
+        price: data.price,
+        message: data.message,
+      });
+
+      alert("Proposal Sent Successfully!");
+      navigate("/freelancer/proposals");
+
+    } catch (err) {
+      console.error(err);
+      alert("Failed to send proposal");
+    }
+  };
 
   return (
     <div style={{ display: "flex" }}>
@@ -20,6 +43,7 @@ const SendProposal = () => {
           <input
             type="number"
             className="form-control"
+            value={data.price}
             onChange={(e) => setData({ ...data, price: e.target.value })}
           />
         </div>
@@ -29,11 +53,14 @@ const SendProposal = () => {
           <textarea
             className="form-control"
             rows="5"
+            value={data.message}
             onChange={(e) => setData({ ...data, message: e.target.value })}
           ></textarea>
         </div>
 
-        <button className="btn btn-dark">Submit Proposal</button>
+        <button className="btn btn-dark" onClick={handleSubmit}>
+          Submit Proposal
+        </button>
       </div>
     </div>
   );
