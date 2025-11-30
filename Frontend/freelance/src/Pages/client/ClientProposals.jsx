@@ -1,73 +1,41 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import ClientSidebar from "./ClientSidebar";
-
-const PROP_KEY = "proposals";
-
-const normalize = (v) => {
-  if (Array.isArray(v)) return v;
-  if (!v) return [];
-  if (v.proposals && Array.isArray(v.proposals)) return v.proposals;
-  return [];
-};
+import ProposalService from "../../services/clientproposalService";
 
 const ClientProposals = () => {
   const [proposals, setProposals] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const loadDemo = () => {
-    const demo = [
-      { id: 201, jobId: 1650000000000, freelancerName: 'Alice', coverLetter: 'I can deliver this in 3 days', amount: 500, status: 'pending' },
-      { id: 202, jobId: 1650000000000, freelancerName: 'Bob', coverLetter: 'I have done similar work', amount: 450, status: 'pending' }
-    ];
-    localStorage.setItem('proposals', JSON.stringify(demo));
-    setProposals(normalize(demo));
-  };
-
   useEffect(() => {
-    const fetchProposals = async () => {
+    const loadProposals = async () => {
       try {
-        const res = await axios.get("/api/client/proposals");
-        setProposals(normalize(res?.data));
-      } catch (e) {
-        let local = [];
-        try {
-          local = JSON.parse(localStorage.getItem(PROP_KEY) || "[]");
-        } catch (err) {
-          local = [];
-        }
-        if (!Array.isArray(local) || local.length === 0) {
-          // auto-load demo so UI isn't blank on first visit
-          const demo = [
-            { id: 201, jobId: 1650000000000, freelancerName: 'Alice', coverLetter: 'I can deliver this in 3 days', amount: 500, status: 'pending' },
-            { id: 202, jobId: 1650000000000, freelancerName: 'Bob', coverLetter: 'I have done similar work', amount: 450, status: 'pending' }
-          ];
-          localStorage.setItem(PROP_KEY, JSON.stringify(demo));
-          setProposals(normalize(demo));
-        } else {
-          setProposals(normalize(local));
-        }
+        const res = await ProposalService.getAllProposals();
+        setProposals(res.data || []);
+      } catch (err) {
+        console.error("Failed to fetch proposals", err);
+        setProposals([]);
       } finally {
         setLoading(false);
       }
     };
-    fetchProposals();
+
+    loadProposals();
   }, []);
 
-  const updateStatus = (id, status) => {
-    // UI-only update: persist to localStorage and state
-    const updated = proposals.map((p) => (p.id === id ? { ...p, status } : p));
-    setProposals(updated);
+  
+  const updateStatus = async (id, status) => {
     try {
-      const local = JSON.parse(localStorage.getItem(PROP_KEY) || "[]");
-      const merged = local.map((p) => (p.id === id ? { ...p, status } : p));
-      localStorage.setItem(PROP_KEY, JSON.stringify(merged));
-    } catch (e) {
-      // ignore
+      await ProposalService.updateStatus(id, status);
+      
+      setProposals(prev =>
+        prev.map(p => (p.id === id ? { ...p, status } : p))
+      );
+    } catch (err) {
+      console.error("Failed to update status", err);
     }
   };
 
-  // assign form handling
+  
   const [assigningId, setAssigningId] = useState(null);
   const [taskDetails, setTaskDetails] = useState("");
   const [taskDuration, setTaskDuration] = useState("");
@@ -80,60 +48,43 @@ const ClientProposals = () => {
     setTaskAmount(proposal.amount || "");
   };
 
-  const handleAssignSubmit = (proposalId) => {
+  const handleAssignSubmit = async (proposalId) => {
     const proposal = proposals.find((p) => p.id === proposalId);
     if (!proposal) return;
-    const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-    const task = {
-      id: Date.now(),
-      jobId: proposal.jobId || null,
-      proposalId: proposalId,
-      freelancerId: proposal.freelancerId || null,
-      freelancerName: proposal.freelancerName || 'Freelancer',
+
+    
+    console.log("Assigning task to backend:", {
+      jobId: proposal.jobId,
+      proposalId,
+      freelancerId: proposal.freelancerId,
       details: taskDetails,
       duration: taskDuration,
-      amount: taskAmount || proposal.amount || 0,
-      status: 'assigned',
-      paid: false,
-    };
-    const updatedTasks = [task, ...tasks];
-    localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+      amount: taskAmount || proposal.amount,
+    });
 
-    // update proposals store: ensure status accepted
-    const updatedProposals = proposals.map((p) => (p.id === proposalId ? { ...p, status: 'accepted' } : p));
-    setProposals(updatedProposals);
-    try {
-      const local = JSON.parse(localStorage.getItem(PROP_KEY) || "[]");
-      const merged = local.map((p) => (p.id === proposalId ? { ...p, status: 'accepted' } : p));
-      localStorage.setItem(PROP_KEY, JSON.stringify(merged));
-    } catch (e) {
-      // ignore
-    }
+   
+    setProposals(prev =>
+      prev.map(p => (p.id === proposalId ? { ...p, status: 'accepted' } : p))
+    );
 
     setAssigningId(null);
     setTaskDetails("");
     setTaskDuration("");
     setTaskAmount("");
-    alert('Task created and assigned to ' + task.freelancerName);
+    alert('Task assigned to ' + proposal.freelancerName);
   };
- 
+
   return (
     <div style={{ display: "flex" }}>
       <ClientSidebar />
       <div style={{ marginLeft: "260px", padding: "30px", width: "100%" }}>
         <h2>Proposals</h2>
-        <div className="mb-3">
-          <button className="btn btn-sm btn-outline-secondary" onClick={loadDemo}>Load Demo Proposals</button>
-        </div>
         <p className="text-muted">Proposals submitted by freelancers for your jobs.</p>
 
         {loading ? (
           <p className="text-muted">Loading…</p>
         ) : proposals.length === 0 ? (
-          <div>
-            <p className="text-muted">No proposals yet.</p>
-            <button className="btn btn-sm btn-outline-secondary" onClick={loadDemo}>Load Demo Proposals</button>
-          </div>
+          <p className="text-muted">No proposals yet.</p>
         ) : (
           <div className="list-group">
             {proposals.map((p) => (
@@ -142,11 +93,23 @@ const ClientProposals = () => {
                   <div>
                     <h5>{p.freelancerName || 'Freelancer'}</h5>
                     <p className="mb-1">{p.coverLetter}</p>
-                    <small className="text-muted">Job ID: {p.jobId} • Amount: {p.amount || 'N/A'}</small>
+                    <small className="text-muted">
+                      Job ID: {p.jobId} • Amount: {p.amount || 'N/A'}
+                    </small>
                   </div>
                   <div className="d-flex gap-2">
-                    <button className={`btn btn-sm ${p.status === 'accepted' ? 'btn-success' : 'btn-outline-success'}`} onClick={() => startAssign(p)}>Accept</button>
-                    <button className={`btn btn-sm ${p.status === 'rejected' ? 'btn-danger' : 'btn-outline-danger'}`} onClick={() => updateStatus(p.id, 'rejected')}>Reject</button>
+                    <button
+                      className={`btn btn-sm ${p.status === 'accepted' ? 'btn-success' : 'btn-outline-success'}`}
+                      onClick={() => startAssign(p)}
+                    >
+                      Accept
+                    </button>
+                    <button
+                      className={`btn btn-sm ${p.status === 'rejected' ? 'btn-danger' : 'btn-outline-danger'}`}
+                      onClick={() => updateStatus(p.id, 'rejected')}
+                    >
+                      Reject
+                    </button>
                   </div>
                 </div>
 

@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+
 import ClientSidebar from "./ClientSidebar";
+import ClientJobService from "../../services/clientjobService";
 
 const LOCAL_KEY = "client_jobs";
 
@@ -10,30 +11,20 @@ const ClientJobs = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchJobs = async () => {
-      try {
-        const res = await axios.get("/api/client/jobs");
-        if (res?.data) setJobs(res.data);
-      } catch (e) {
-        const local = JSON.parse(localStorage.getItem(LOCAL_KEY) || "[]");
-        setJobs(local);
-      }
-    };
-    fetchJobs();
-  }, []);
-
-  const handleDelete = async (id) => {
-    if (!window.confirm("Delete this job?")) return;
+  const load = async () => {
     try {
-      await axios.delete(`/api/client/jobs/${id}`);
-      setJobs((j) => j.filter((x) => x.id !== id));
-    } catch (e) {
-      const local = JSON.parse(localStorage.getItem(LOCAL_KEY) || "[]");
-      const updated = local.filter((x) => x.id !== id);
-      localStorage.setItem(LOCAL_KEY, JSON.stringify(updated));
-      setJobs(updated);
+      const res = await ClientJobService.getJobs();
+      setJobs(res.data);
+    } catch (err) {
+      setJobs(JSON.parse(localStorage.getItem("client_jobs") || "[]"));
     }
   };
+  load();
+}, []);
+
+const handleDelete = async (id) => {
+  await ClientJobService.deleteJob(id);
+};
 
   return (
     <div style={{ display: "flex" }}>

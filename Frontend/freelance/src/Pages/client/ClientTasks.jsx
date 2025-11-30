@@ -1,27 +1,25 @@
 import React, { useEffect, useState } from "react";
 import ClientSidebar from "./ClientSidebar";
+import TaskService from "../../services/clienttaskService";
 
 const ClientTasks = () => {
   const [tasks, setTasks] = useState([]);
 
   useEffect(() => {
-    const local = JSON.parse(localStorage.getItem('tasks') || '[]');
-    setTasks(local);
-  }, []);
-
-  const markPaid = (id) => {
-    const local = JSON.parse(localStorage.getItem('tasks') || '[]');
-    const updated = local.map((t) => (t.id === id ? { ...t, paid: true } : t));
-    localStorage.setItem('tasks', JSON.stringify(updated));
-    setTasks(updated);
-    // record payment with payer name
-    const payments = JSON.parse(localStorage.getItem('payments') || '[]');
-    const task = updated.find((t) => t.id === id);
-    const payerName = window.prompt('Enter your name (payer) to record payment:', 'Client');
-    payments.unshift({ id: Date.now(), taskId: id, amount: task.amount || 0, freelancerName: task.freelancerName, payerName: payerName || 'Client' });
-    localStorage.setItem('payments', JSON.stringify(payments));
-    alert('Marked as paid');
+  const load = async () => {
+    try {
+      const res = await TaskService.getClientTasks();
+      setTasks(res.data);
+    } catch {
+      setTasks(JSON.parse(localStorage.getItem("tasks") || "[]"));
+    }
   };
+  load();
+}, []);
+
+const markPaid = async (id) => {
+  await TaskService.markPaid(id);
+};
 
   return (
     <div style={{ display: "flex" }}>

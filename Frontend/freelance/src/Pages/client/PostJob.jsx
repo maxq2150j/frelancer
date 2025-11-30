@@ -1,7 +1,9 @@
-import React, { useState } from "react";
-import axios from "axios";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import ClientSidebar from "./ClientSidebar";
+import ClientJobService from "../../services/clientjobService";
+
 
 const LOCAL_KEY = "client_jobs";
 
@@ -9,24 +11,16 @@ const PostJob = () => {
   const [job, setJob] = useState({ title: "", description: "", budget: "" });
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await axios.post("/api/client/jobs", job);
-      if (res?.data) {
-        alert("Job posted");
-        navigate('/client/jobs');
-        return;
-      }
-    } catch (e) {
-      const local = JSON.parse(localStorage.getItem(LOCAL_KEY) || "[]");
-      const id = Date.now();
-      const newJob = { ...job, id };
-      localStorage.setItem(LOCAL_KEY, JSON.stringify([newJob, ...local]));
-      alert("Job saved locally (no backend).");
-      navigate('/client/jobs');
-    }
-  };
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    await ClientJobService.createJob(job);
+    alert("Job posted");
+    navigate("/client/jobs");
+  } catch (e) {
+    console.log(e);
+  }
+};
 
   return (
     <div style={{ display: "flex" }}>
